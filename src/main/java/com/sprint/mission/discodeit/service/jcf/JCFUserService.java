@@ -36,7 +36,7 @@ public class JCFUserService implements UserService{
             return null;
         }
 
-        user.updateAt(username, email, password);
+        user.update(username, email, password);
         return user;
     }
 

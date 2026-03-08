@@ -1,14 +1,22 @@
 package com.sprint.mission.discodeit;
 
 import com.sprint.mission.discodeit.entity.*;
+import com.sprint.mission.discodeit.repository.*;
+import com.sprint.mission.discodeit.repository.file.*;
+import com.sprint.mission.discodeit.repository.jcf.*;
 import com.sprint.mission.discodeit.service.*;
-import com.sprint.mission.discodeit.service.jcf.*;
+import com.sprint.mission.discodeit.service.basic.*;
 
 public class JavaApplication {
     public static void main(String[] args) {
-        UserService userService = new JCFUserService();
-        ChannelService channelService = new JCFChannelService();
-        MessageService messageService = new JCFMessageService(userService, channelService);
+        UserRepository userRepository = new FileUserRepository();
+        ChannelRepository channelRepository = new FileChannelRepository();
+        MessageRepository messageRepository = new FileMessageRepository();
+
+        UserService userService = new BasicUserService(userRepository);
+        ChannelService channelService = new BasicChannelService(channelRepository);
+        MessageService messageService =
+                new BasicMessageService(messageRepository, userRepository, channelRepository);
 
         User user1 = userService.create("Evan", "Evan@gmail.com", "1234");
         User user2 = userService.create("Rick", "Rick@gmail.com", "9876");
@@ -19,13 +27,18 @@ public class JavaApplication {
         Message message2 = messageService.create(user2.getId(), channel1.getId(), "Hi");
 
         System.out.println("===== Users =====");
-        for (User user : userService.findAll()) {
-            System.out.println(user.getUsername());
+        for (User item : userService.findAll()) {
+            System.out.println(item.getUsername());
+        }
+
+        System.out.println("===== Channels =====");
+        for (Channel item : channelService.findAll()) {
+            System.out.println(item.getName());
         }
 
         System.out.println("===== Messages =====");
-        for (Message message : messageService.findAll()) {
-            System.out.println(message.getContent());
+        for (Message item : messageService.findAll()) {
+            System.out.println(item.getContent());
         }
 
         System.out.println("===== 사용자 선택 조회 =====");

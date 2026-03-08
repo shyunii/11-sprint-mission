@@ -1,4 +1,77 @@
 package com.sprint.mission.discodeit.service.file;
 
-public class FileUserService {
+import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.service.UserService;
+
+import java.io.*;
+import java.util.*;
+
+public class FileUserService implements UserService {
+
+    private final File file;
+
+    public FileUserService() {
+        this.file = new File("users.ser");
+    }
+
+    @Override
+    public User create(String username, String email, String password) {
+        Map<UUID, User> data = load();
+        User user = new User(username, email, password);
+        data.put(user.getId(), user);
+        save(data);
+        return user;
+    }
+
+    @Override
+    public User findById(UUID id) {
+        return load().get(id);
+    }
+
+    @Override
+    public List<User> findAll() {
+        return new ArrayList<>(load().values());
+    }
+
+    @Override
+    public User update(UUID id, String username, String email, String password) {
+        Map<UUID, User> data = load();
+        User user = data.get(id);
+
+        if (user == null) {
+            return null;
+        }
+
+        user.update(username, email, password);
+        save(data);
+        return user;
+    }
+
+    @Override
+    public void delete(UUID id) {
+        Map<UUID, User> data = load();
+        data.remove(id);
+        save(data);
+    }
+
+    private void save(Map<UUID, User> data) {
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file))) {
+            out.writeObject(data);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<UUID, User> load() {
+        if (!file.exists()) {
+            return new HashMap<>();
+        }
+
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(file))) {
+            return (Map<UUID, User>) in.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

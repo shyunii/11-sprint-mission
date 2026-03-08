@@ -1,8 +1,11 @@
 package com.sprint.mission.discodeit.entity;
 
+import java.io.Serializable;
 import java.util.UUID;
 
-public class Channel {
+public class Channel implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     private final UUID id;
     private final Long createdAt;
     private Long updateAt;
@@ -18,7 +21,7 @@ public class Channel {
         this.description = description;
     }
 
-    public void updateAt(String name, String description) {
+    public void update(String name, String description) {
         this.name = name;
         this.description = description;
         this.updateAt = System.currentTimeMillis();

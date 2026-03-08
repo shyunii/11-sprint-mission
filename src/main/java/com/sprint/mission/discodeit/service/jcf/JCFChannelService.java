@@ -35,7 +35,7 @@ public class JCFChannelService implements ChannelService{
         if (channel == null) {
             return null;
         }
-        channel.updateAt(name, description);
+        channel.update(name, description);
         return channel;
     }
 

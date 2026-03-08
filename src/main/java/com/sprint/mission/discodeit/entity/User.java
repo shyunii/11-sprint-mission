@@ -1,8 +1,11 @@
 package com.sprint.mission.discodeit.entity;
 
+import java.io.Serializable;
 import java.util.UUID;
 
-public class User {
+public class User implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     private final UUID id;
     private final Long createdAt;
     private Long updateAt;
@@ -20,7 +23,7 @@ public class User {
         this.password = password;
     }
 
-    public void updateAt(String username, String email, String password) {
+    public void update(String username, String email, String password) {
         this.username = username;
         this.email = email;
         this.password = password;
