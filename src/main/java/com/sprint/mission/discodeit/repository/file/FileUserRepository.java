@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.repository.file;
 
+import org.springframework.stereotype.Repository;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.UserRepository;
 
@@ -9,6 +10,7 @@ import java.nio.file.*;
 
 import static java.nio.file.Files.createDirectory;
 
+@Repository
 public class FileUserRepository implements UserRepository {
 
     private final Path directory;

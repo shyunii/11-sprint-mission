@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.repository.file;
 
+import org.springframework.stereotype.Repository;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 
@@ -12,6 +13,7 @@ import java.util.*;
 
 import static java.nio.file.Files.createDirectory;
 
+@Repository
 public class FileMessageRepository implements MessageRepository {
 
     private final Path directory;
