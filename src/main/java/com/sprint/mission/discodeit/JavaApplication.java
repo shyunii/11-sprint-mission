@@ -42,7 +42,8 @@ public class JavaApplication {
         }
 
         System.out.println("===== 사용자 선택 조회 =====");
-        System.out.println(userService.findById(user1.getId()).getUsername());
+        userService.findById(user1.getId())
+                        .ifPresent(u -> System.out.println(u.getUsername()));
 
         System.out.println("\n===== 사용자 전체 조회 =====");
         for (User user : userService.findAll()) {
@@ -51,15 +52,17 @@ public class JavaApplication {
 
         System.out.println("\n===== 채널 수정 =====");
         channelService.update(channel1.getId(), "Test2", "All chat2");
-        System.out.println(channelService.findById(channel1.getId()).getName());
+        channelService.findById(channel1.getId())
+                .ifPresent(c -> System.out.println(c.getName()));
 
         System.out.println("\n===== 메세지 수정 =====");
         messageService.update(message1.getId(), "How are you?");
-        System.out.println(messageService.findById(message1.getId()).getContent());
+        messageService.findById(message1.getId())
+                        .ifPresent(m -> System.out.println(m.getContent()));
 
         System.out.println("\n===== 메세지 삭제 =====");
         messageService.delete(message2.getId());
-        if (messageService.findById(message2.getId()) == null) {
+        if (messageService.findById(message2.getId()).isEmpty()) {
             System.out.println("메세지가 삭제되었습니다.");
         } else {
             System.out.println("메세지 삭제 실패");

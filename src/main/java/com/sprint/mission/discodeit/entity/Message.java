@@ -14,12 +14,12 @@ public class Message implements Serializable{
     private UUID channelId;
     private String content;
 
-    public Message(UUID userId, UUID channelID, String content) {
+    public Message(UUID userId, UUID channelId, String content) {
         this.id = UUID.randomUUID();
         this.createdAt = System.currentTimeMillis();
         this.updatedAt = this.createdAt;
         this.userId = userId;
-        this.channelId = channelID;
+        this.channelId = channelId;
         this.content = content;
     }
 

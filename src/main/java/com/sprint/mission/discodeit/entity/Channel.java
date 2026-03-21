@@ -8,7 +8,7 @@ public class Channel implements Serializable {
 
     private final UUID id;
     private final Long createdAt;
-    private Long updateAt;
+    private Long updatedAt;
 
     private String name;
     private String description;
@@ -16,7 +16,7 @@ public class Channel implements Serializable {
     public Channel(String name, String description) {
         this.id = UUID.randomUUID();
         this.createdAt = System.currentTimeMillis();
-        this.updateAt = this.createdAt;
+        this.updatedAt = this.createdAt;
         this.name = name;
         this.description = description;
     }
@@ -24,7 +24,7 @@ public class Channel implements Serializable {
     public void update(String name, String description) {
         this.name = name;
         this.description = description;
-        this.updateAt = System.currentTimeMillis();
+        this.updatedAt = System.currentTimeMillis();
     }
 
     public UUID getId() {
@@ -35,7 +35,7 @@ public class Channel implements Serializable {
         return createdAt;
     }
     public Long getUpdateAt() {
-        return updateAt;
+        return updatedAt;
     }
 
     public String getName() {

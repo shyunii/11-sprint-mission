@@ -7,6 +7,7 @@ import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public class BasicMessageService implements MessageService {
@@ -40,7 +41,7 @@ public class BasicMessageService implements MessageService {
     }
 
     @Override
-    public Message findById(UUID id) {
+    public Optional<Message> findById(UUID id) {
         return messageRepository.findById(id);
     }
 
@@ -51,13 +52,15 @@ public class BasicMessageService implements MessageService {
 
     @Override
     public Message update(UUID id, String content) {
-        Message message = messageRepository.findById(id);
+        Optional<Message> optionalMessage = messageRepository.findById(id);
 
-        if (message == null) {
+        if (optionalMessage.isEmpty()) {
             return null;
         }
 
+        Message message = optionalMessage.get();
         message.update(content);
+
         return messageRepository.save(message);
     }
 

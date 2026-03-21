@@ -19,8 +19,8 @@ public class JCFChannelService implements ChannelService{
     }
 
     @Override
-    public Channel findById(UUID id) {
-        return data.get(id);
+    public Optional<Channel> findById(UUID id) {
+        return Optional.ofNullable(data.get(id));
     }
 
     @Override

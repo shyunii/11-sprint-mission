@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.service.file;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.UserService;
 
+import java.util.Optional;
 import java.io.*;
 import java.util.*;
 
@@ -24,8 +25,8 @@ public class FileUserService implements UserService {
     }
 
     @Override
-    public User findById(UUID id) {
-        return load().get(id);
+    public Optional<User> findById(UUID id) {
+        return Optional.ofNullable(load().get(id));
     }
 
     @Override
@@ -62,7 +63,6 @@ public class FileUserService implements UserService {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private Map<UUID, User> load() {
         if (!file.exists()) {
             return new HashMap<>();

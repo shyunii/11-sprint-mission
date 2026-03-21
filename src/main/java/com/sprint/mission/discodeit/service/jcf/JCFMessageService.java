@@ -31,8 +31,8 @@ public class JCFMessageService implements MessageService {
         return message;
     }
     @Override
-    public Message findById(UUID id) {
-        return data.get(id);
+    public Optional<Message> findById(UUID id) {
+        return Optional.ofNullable(data.get(id));
     }
     @Override
     public List<Message> findAll() {

@@ -8,7 +8,7 @@ public class User implements Serializable {
 
     private final UUID id;
     private final Long createdAt;
-    private Long updateAt;
+    private Long updatedAt;
 
     private String username;
     private String email;
@@ -17,7 +17,7 @@ public class User implements Serializable {
     public User(String username, String email, String password) {
         this.id = UUID.randomUUID();
         this.createdAt = System.currentTimeMillis();
-        this.updateAt = this.createdAt;
+        this.updatedAt = this.createdAt;
         this.username = username;
         this.email = email;
         this.password = password;
@@ -27,7 +27,7 @@ public class User implements Serializable {
         this.username = username;
         this.email = email;
         this.password = password;
-        this.updateAt = System.currentTimeMillis();
+        this.updatedAt = System.currentTimeMillis();
     }
 
     public UUID getId() {
@@ -38,7 +38,7 @@ public class User implements Serializable {
         return createdAt;
     }
     public Long getUpdateAt() {
-        return updateAt;
+        return updatedAt;
     }
 
     public String getUsername() {

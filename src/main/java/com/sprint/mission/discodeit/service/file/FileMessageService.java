@@ -38,8 +38,8 @@ public class FileMessageService implements MessageService {
     }
 
     @Override
-    public Message findById(UUID id) {
-        return load().get(id);
+    public Optional<Message> findById(UUID id) {
+        return Optional.ofNullable(load().get(id));
     }
 
     @Override

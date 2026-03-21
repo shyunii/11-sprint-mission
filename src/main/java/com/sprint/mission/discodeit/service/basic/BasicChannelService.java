@@ -5,6 +5,7 @@ import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public class BasicChannelService implements ChannelService {
@@ -22,7 +23,7 @@ public class BasicChannelService implements ChannelService {
     }
 
     @Override
-    public Channel findById(UUID id) {
+    public Optional<Channel> findById(UUID id) {
         return channelRepository.findById(id);
     }
 
@@ -33,13 +34,15 @@ public class BasicChannelService implements ChannelService {
 
     @Override
     public Channel update(UUID id, String name, String description) {
-        Channel channel = channelRepository.findById(id);
+        Optional<Channel> optionalChannel = channelRepository.findById(id);
 
-        if (channel == null) {
+        if (optionalChannel.isEmpty()) {
             return null;
         }
 
+        Channel channel = optionalChannel.get();
         channel.update(name, description);
+
         return channelRepository.save(channel);
     }
 

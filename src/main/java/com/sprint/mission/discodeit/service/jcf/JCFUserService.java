@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.service.jcf;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.UserService;
 import java.util.*;
+import java.util.Optional;
 
 public class JCFUserService implements UserService{
     private final Map<UUID, User> data;
@@ -19,8 +20,8 @@ public class JCFUserService implements UserService{
     }
 
     @Override
-    public User findById(UUID id) {
-        return data.get(id);
+    public Optional<User> findById(UUID id) {
+        return Optional.ofNullable(data.get(id));
     }
 
     @Override

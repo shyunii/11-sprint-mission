@@ -5,58 +5,78 @@ import com.sprint.mission.discodeit.repository.UserRepository;
 
 import java.io.*;
 import java.util.*;
+import java.nio.file.*;
+
+import static java.nio.file.Files.createDirectory;
 
 public class FileUserRepository implements UserRepository {
 
-    private final File file;
+    private final Path directory;
 
     public FileUserRepository() {
-        this.file = new File("users.ser");
+        this.directory = Paths.get("data", "users");
+        createDirectory();
     }
 
     @Override
     public User save(User user) {
-        Map<UUID, User> data = load();
-        data.put(user.getId(), user);
-        write(data);
-        return user;
-    }
+        Path filePath = directory.resolve(user.getId() + ".ser");
 
-    @Override
-    public User findById(UUID id) {
-        return load().get(id);
-    }
-
-    @Override
-    public List<User> findAll() {
-        return new ArrayList<>(load().values());
-    }
-
-    @Override
-    public void delete(UUID id) {
-        Map<UUID, User> data = load();
-        data.remove(id);
-        write(data);
-    }
-
-    private void write(Map<UUID, User> data) {
-        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file))) {
-            out.writeObject(data);
+        try (ObjectOutputStream out = new ObjectOutputStream(
+                new FileOutputStream((filePath.toFile())))) {
+            out.writeObject(user);
+            return user;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private Map<UUID, User> load() {
-        if (!file.exists()) {
-            return new HashMap<>();
+    @Override
+    public Optional<User> findById(UUID id) {
+        Path filePath = directory.resolve(id + ".ser");
+        if (!Files.exists(filePath)) {
+            return Optional.empty();
         }
-
-        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(file))) {
-            return (Map<UUID, User>) in.readObject();
+        try (ObjectInputStream in = new ObjectInputStream(
+                new FileInputStream(filePath.toFile()))) {
+            return Optional.of((User) in.readObject());
         } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public List<User> findAll() {
+        List<User> users = new ArrayList<>();
+
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory, "*.ser")) {
+            for (Path filePath : stream) {
+                try (ObjectInputStream in = new ObjectInputStream(
+                        new FileInputStream(filePath.toFile()))) {
+                    users.add((User) in.readObject());
+                }
+            }
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        return users;
+    }
+
+    @Override
+    public void delete(UUID id) {
+        Path filePath = directory.resolve(id + ".ser");
+        try {
+            Files.deleteIfExists(filePath);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void createDirectory() {
+    try {
+        Files.createDirectories(directory);
+    } catch (IOException e) {
+        throw new RuntimeException(e);
+    }
     }
 }
