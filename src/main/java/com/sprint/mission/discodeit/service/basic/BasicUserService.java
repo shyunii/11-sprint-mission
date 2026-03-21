@@ -3,8 +3,9 @@ package com.sprint.mission.discodeit.service.basic;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.UserService;
-import java.util.Optional;
+
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public class BasicUserService implements UserService {
@@ -33,18 +34,23 @@ public class BasicUserService implements UserService {
 
     @Override
     public User update(UUID id, String username, String email, String password) {
-        Optional<User> user = userRepository.findById(id);
+        Optional<User> optionalUser = userRepository.findById(id);
 
-        if (user.isEmpty()) {
-            return null;
+        if (optionalUser.isEmpty()) {
+            throw new IllegalArgumentException("존재하지 않는 사용자입니다.");
         }
 
-        user.get().update(username, email, password);
-        return userRepository.save(user.orElse(null));
+        User user = optionalUser.get();
+        user.update(username, email, password);
+        return userRepository.save(user);
     }
 
     @Override
     public void delete(UUID id) {
+        if (userRepository.findById(id).isEmpty()) {
+            throw new IllegalArgumentException("존재하지 않는 사용자입니다.");
+        }
+
         userRepository.delete(id);
     }
 }

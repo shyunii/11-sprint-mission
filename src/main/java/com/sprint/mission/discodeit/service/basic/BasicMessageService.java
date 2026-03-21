@@ -28,11 +28,11 @@ public class BasicMessageService implements MessageService {
 
     @Override
     public Message create(UUID userId, UUID channelId, String content) {
-        if (userRepository.findById(userId) == null) {
+        if (userRepository.findById(userId).isEmpty()) {
             throw new IllegalArgumentException("존재하지 않는 사용자입니다.");
         }
 
-        if (channelRepository.findById(channelId) == null) {
+        if (channelRepository.findById(channelId).isEmpty()) {
             throw new IllegalArgumentException("존재하지 않는 채널입니다.");
         }
 
@@ -55,17 +55,20 @@ public class BasicMessageService implements MessageService {
         Optional<Message> optionalMessage = messageRepository.findById(id);
 
         if (optionalMessage.isEmpty()) {
-            return null;
+            throw new IllegalArgumentException("존재하지 않는 메시지입니다.");
         }
 
         Message message = optionalMessage.get();
         message.update(content);
-
         return messageRepository.save(message);
     }
 
     @Override
     public void delete(UUID id) {
+        if (messageRepository.findById(id).isEmpty()) {
+            throw new IllegalArgumentException("존재하지 않는 메시지입니다.");
+        }
+
         messageRepository.delete(id);
     }
 }

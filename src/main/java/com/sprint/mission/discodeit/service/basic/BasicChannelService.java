@@ -37,17 +37,20 @@ public class BasicChannelService implements ChannelService {
         Optional<Channel> optionalChannel = channelRepository.findById(id);
 
         if (optionalChannel.isEmpty()) {
-            return null;
+            throw new IllegalArgumentException("존재하지 않는 채널입니다.");
         }
 
         Channel channel = optionalChannel.get();
         channel.update(name, description);
-
         return channelRepository.save(channel);
     }
 
     @Override
     public void delete(UUID id) {
+        if (channelRepository.findById(id).isEmpty()) {
+            throw new IllegalArgumentException("존재하지 않는 채널입니다.");
+        }
+
         channelRepository.delete(id);
     }
 }
