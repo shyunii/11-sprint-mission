@@ -10,19 +10,23 @@ import java.nio.file.*;
 
 import static java.nio.file.Files.createDirectory;
 
-@Repository
+
 public class FileUserRepository implements UserRepository {
 
-    private final Path directory;
+    private final Path baseDir;
 
-    public FileUserRepository() {
-        this.directory = Paths.get("data", "users");
-        createDirectory();
+    public FileUserRepository(String rootDirectory) {
+        this.baseDir = Path.of(rootDirectory, "users");
+        try {
+            Files.createDirectories(baseDir);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public User save(User user) {
-        Path filePath = directory.resolve(user.getId() + ".ser");
+        Path filePath = baseDir.resolve(user.getId() + ".ser");
 
         try (ObjectOutputStream out = new ObjectOutputStream(
                 new FileOutputStream((filePath.toFile())))) {
@@ -35,7 +39,7 @@ public class FileUserRepository implements UserRepository {
 
     @Override
     public Optional<User> findById(UUID id) {
-        Path filePath = directory.resolve(id + ".ser");
+        Path filePath = baseDir.resolve(id + ".ser");
         if (!Files.exists(filePath)) {
             return Optional.empty();
         }
@@ -51,7 +55,7 @@ public class FileUserRepository implements UserRepository {
     public List<User> findAll() {
         List<User> users = new ArrayList<>();
 
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory, "*.ser")) {
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(baseDir, "*.ser")) {
             for (Path filePath : stream) {
                 try (ObjectInputStream in = new ObjectInputStream(
                         new FileInputStream(filePath.toFile()))) {
@@ -66,7 +70,7 @@ public class FileUserRepository implements UserRepository {
 
     @Override
     public void delete(UUID id) {
-        Path filePath = directory.resolve(id + ".ser");
+        Path filePath = baseDir.resolve(id + ".ser");
         try {
             Files.deleteIfExists(filePath);
         } catch (IOException e) {
@@ -76,7 +80,7 @@ public class FileUserRepository implements UserRepository {
 
     private void createDirectory() {
     try {
-        Files.createDirectories(directory);
+        Files.createDirectories(baseDir);
     } catch (IOException e) {
         throw new RuntimeException(e);
     }

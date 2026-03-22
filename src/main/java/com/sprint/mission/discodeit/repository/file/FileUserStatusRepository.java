@@ -12,12 +12,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-@Repository
+
 public class FileUserStatusRepository implements UserStatusRepository {
 
-    private final Path baseDir = Path.of("data/user-status");
+    private final Path baseDir;
 
-    public FileUserStatusRepository() {
+    public FileUserStatusRepository(String rootDirectory) {
+        this.baseDir = Path.of(rootDirectory, "user-status");
         try {
             Files.createDirectories(baseDir);
         } catch (IOException e) {
@@ -72,7 +73,7 @@ public class FileUserStatusRepository implements UserStatusRepository {
     @Override
     public Optional<UserStatus> findByUserId(UUID userId) {
         return findAll().stream()
-                .filter(status -> status.getUserId().equals(userId))
+                .filter(userStatus -> userStatus.getUserId().equals(userId))
                 .findFirst();
     }
 

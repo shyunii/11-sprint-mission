@@ -13,19 +13,23 @@ import java.util.*;
 
 import static java.nio.file.Files.createDirectory;
 
-@Repository
+
 public class FileMessageRepository implements MessageRepository {
 
-    private final Path directory;
+    private final Path baseDir;
 
-    public FileMessageRepository() {
-        this.directory = Paths.get("data", "messages");
-        createDirectory();
+    public FileMessageRepository(String rootDirectory) {
+        this.baseDir = Path.of(rootDirectory, "messages");
+        try {
+            Files.createDirectories(baseDir);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public Message save(Message message) {
-        Path filePath = directory.resolve(message.getId() + ".ser");
+        Path filePath = baseDir.resolve(message.getId() + ".ser");
         try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(filePath.toFile()))) {
             out.writeObject(message);
             return message;
@@ -36,7 +40,7 @@ public class FileMessageRepository implements MessageRepository {
 
     @Override
     public Optional<Message> findById(UUID id) {
-        Path filePath = directory.resolve(id + ".ser");
+        Path filePath = baseDir.resolve(id + ".ser");
         if (!Files.exists(filePath)) {
             return Optional.empty();
         }
@@ -49,7 +53,7 @@ public class FileMessageRepository implements MessageRepository {
 
     private void createDirectory() {
         try {
-            Files.createDirectories(directory);
+            Files.createDirectories(baseDir);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -58,7 +62,7 @@ public class FileMessageRepository implements MessageRepository {
     @Override
     public List<Message> findAll() {
         List<Message> messages = new ArrayList<>();
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory, "*.ser")) {
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(baseDir, "*.ser")) {
             for (Path filePath : stream) {
                 try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(filePath.toFile()))) {
                     messages.add((Message) in.readObject());
@@ -72,7 +76,7 @@ public class FileMessageRepository implements MessageRepository {
 
     @Override
     public void delete(UUID id) {
-        Path filePath = directory.resolve(id + ".ser");
+        Path filePath = baseDir.resolve(id + ".ser");
         try {
             Files.deleteIfExists(filePath);
         } catch (IOException e) {

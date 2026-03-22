@@ -1,7 +1,6 @@
 package com.sprint.mission.discodeit;
 
-import com.sprint.mission.discodeit.dto.UserCreateRequest;
-import com.sprint.mission.discodeit.dto.UserDto;
+import com.sprint.mission.discodeit.dto.*;
 import com.sprint.mission.discodeit.entity.*;
 import com.sprint.mission.discodeit.repository.*;
 import com.sprint.mission.discodeit.repository.file.*;
@@ -27,10 +26,16 @@ public class JavaApplication {
                 new UserCreateRequest("Rick", "Rick@gmail.com", "9876", null)
         );
 
-        Channel channel1 = channelService.create("Test", "All chat");
+        ChannelDto channel1 = channelService.createPublic(
+                new PublicChannelCreateRequest("Test", "All chat")
+        );
 
-        Message message1 = messageService.create(user1.id(), channel1.getId(), "Hello");
-        Message message2 = messageService.create(user2.id(), channel1.getId(), "Hi");
+        MessageDto message1 = messageService.create(
+                new MessageCreateRequest(user1.id(), channel1.id(), "Hello", null)
+        );
+        MessageDto message2 = messageService.create(
+                new MessageCreateRequest(user2.id(), channel1.id(), "Hi", null)
+        );
 
         System.out.println("===== Users =====");
         for (UserDto item : userService.findAll()) {
@@ -38,13 +43,13 @@ public class JavaApplication {
         }
 
         System.out.println("===== Channels =====");
-        for (Channel item : channelService.findAll()) {
-            System.out.println(item.getName());
+        for (ChannelDto item : channelService.findAllByUserId(user1.id())) {
+            System.out.println(item.name());
         }
 
         System.out.println("===== Messages =====");
-        for (Message item : messageService.findAll()) {
-            System.out.println(item.getContent());
+        for (MessageDto item : messageService.findAllByChannelId(channel1.id())) {
+            System.out.println(item.content());
         }
 
         System.out.println("===== 사용자 선택 조회 =====");
@@ -57,18 +62,28 @@ public class JavaApplication {
         }
 
         System.out.println("\n===== 채널 수정 =====");
-        channelService.update(channel1.getId(), "Test2", "All chat2");
-        channelService.findById(channel1.getId())
-                .ifPresent(c -> System.out.println(c.getName()));
+        channelService.update(
+                new ChannelUpdateParam(
+                        channel1.id(),
+                        new ChannelUpdateRequest("Test2", "All chat2")
+                )
+        );
+        channelService.find(channel1.id())
+                .ifPresent(c -> System.out.println(c.name()));
 
         System.out.println("\n===== 메세지 수정 =====");
-        messageService.update(message1.getId(), "How are you?");
-        messageService.findById(message1.getId())
-                .ifPresent(m -> System.out.println(m.getContent()));
+        messageService.update(
+                new MessageUpdateParam(
+                        message1.id(),
+                        new MessageUpdateRequest("How are you?")
+                )
+        );
+        messageService.find(message1.id())
+                .ifPresent(m -> System.out.println(m.content()));
 
         System.out.println("\n===== 메세지 삭제 =====");
-        messageService.delete(message2.getId());
-        if (messageService.findById(message2.getId()).isEmpty()) {
+        messageService.delete(message2.id());
+        if (messageService.find(message2.id()).isEmpty()) {
             System.out.println("메세지가 삭제되었습니다.");
         } else {
             System.out.println("메세지 삭제 실패");

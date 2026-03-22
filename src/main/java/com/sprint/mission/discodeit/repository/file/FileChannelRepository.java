@@ -8,17 +8,13 @@ import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 
-@Repository
+
 public class FileChannelRepository implements ChannelRepository {
 
     private final Path directory;
 
-    public FileChannelRepository() {
-        this.directory = Paths.get("data", "channels");
-        createDirectory();
-    }
-
-    private void createDirectory() {
+    public FileChannelRepository(String rootDirectory) {
+        this.directory = Path.of(rootDirectory, "channels");
         try {
             Files.createDirectories(directory);
         } catch (IOException e) {

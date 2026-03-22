@@ -1,7 +1,7 @@
 package com.sprint.mission.discodeit.repository.file;
 
-import com.sprint.mission.discodeit.entity.BinaryContent;
-import com.sprint.mission.discodeit.repository.BinaryContentRepository;
+import com.sprint.mission.discodeit.entity.ReadStatus;
+import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import org.springframework.stereotype.Repository;
 
 import java.io.*;
@@ -12,12 +12,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public class FileBinaryContentRepository implements BinaryContentRepository {
+
+public class FileReadStatusRepository implements ReadStatusRepository {
 
     private final Path baseDir;
 
-    public FileBinaryContentRepository(String rootDirectory) {
-        this.baseDir = Path.of(rootDirectory, "binary-content");
+    public FileReadStatusRepository(String rootDirectory) {
+        this.baseDir = Path.of(rootDirectory, "read-status");
         try {
             Files.createDirectories(baseDir);
         } catch (IOException e) {
@@ -26,39 +27,39 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
     }
 
     @Override
-    public BinaryContent save(BinaryContent binaryContent) {
-        Path path = baseDir.resolve(binaryContent.getId() + ".ser");
+    public ReadStatus save(ReadStatus readStatus) {
+        Path path = baseDir.resolve(readStatus.getId() + ".ser");
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(path.toFile()))) {
-            oos.writeObject(binaryContent);
-            return binaryContent;
+            oos.writeObject(readStatus);
+            return readStatus;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public Optional<BinaryContent> findById(UUID id) {
+    public Optional<ReadStatus> findById(UUID id) {
         Path path = baseDir.resolve(id + ".ser");
         if (!Files.exists(path)) {
             return Optional.empty();
         }
 
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(path.toFile()))) {
-            return Optional.of((BinaryContent) ois.readObject());
+            return Optional.of((ReadStatus) ois.readObject());
         } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public List<BinaryContent> findAll() {
+    public List<ReadStatus> findAll() {
         try {
-            List<BinaryContent> result = new ArrayList<>();
+            List<ReadStatus> result = new ArrayList<>();
             Files.list(baseDir)
                     .filter(path -> path.toString().endsWith(".ser"))
                     .forEach(path -> {
                         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(path.toFile()))) {
-                            result.add((BinaryContent) ois.readObject());
+                            result.add((ReadStatus) ois.readObject());
                         } catch (IOException | ClassNotFoundException e) {
                             throw new RuntimeException(e);
                         }
