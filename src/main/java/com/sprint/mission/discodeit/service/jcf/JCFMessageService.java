@@ -20,10 +20,10 @@ public class JCFMessageService implements MessageService {
 
     @Override
     public Message create(UUID userId, UUID channelId, String content) {
-        if (userService.findById(userId) == null) {
+        if (userService.find(userId).isEmpty()) {
             throw new IllegalArgumentException("존재하지 않는 사용자");
         }
-        if (channelService.findById(channelId) == null) {
+        if (channelService.findById(channelId).isEmpty()) {
             throw new IllegalArgumentException("존재하지 않는 채널");
         }
         Message message = new Message(userId, channelId, content);

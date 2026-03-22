@@ -1,34 +1,40 @@
 package com.sprint.mission.discodeit;
 
+import com.sprint.mission.discodeit.dto.UserCreateRequest;
+import com.sprint.mission.discodeit.dto.UserDto;
 import com.sprint.mission.discodeit.entity.*;
 import com.sprint.mission.discodeit.repository.*;
 import com.sprint.mission.discodeit.repository.file.*;
 import com.sprint.mission.discodeit.repository.jcf.*;
 import com.sprint.mission.discodeit.service.*;
 import com.sprint.mission.discodeit.service.basic.*;
+import org.springframework.boot.SpringApplication;
+import org.springframework.context.ConfigurableApplicationContext;
 
 public class JavaApplication {
     public static void main(String[] args) {
-        UserRepository userRepository = new FileUserRepository();
-        ChannelRepository channelRepository = new FileChannelRepository();
-        MessageRepository messageRepository = new FileMessageRepository();
+        ConfigurableApplicationContext context =
+                SpringApplication.run(DiscodeitApplication.class, args);
 
-        UserService userService = new BasicUserService(userRepository);
-        ChannelService channelService = new BasicChannelService(channelRepository);
-        MessageService messageService =
-                new BasicMessageService(messageRepository, userRepository, channelRepository);
+        UserService userService = context.getBean(UserService.class);
+        ChannelService channelService = context.getBean(ChannelService.class);
+        MessageService messageService = context.getBean(MessageService.class);
 
-        User user1 = userService.create("Evan", "Evan@gmail.com", "1234");
-        User user2 = userService.create("Rick", "Rick@gmail.com", "9876");
+        UserDto user1 = userService.create(
+                new UserCreateRequest("Evan", "Evan@gmail.com", "1234", null)
+        );
+        UserDto user2 = userService.create(
+                new UserCreateRequest("Rick", "Rick@gmail.com", "9876", null)
+        );
 
         Channel channel1 = channelService.create("Test", "All chat");
 
-        Message message1 = messageService.create(user1.getId(), channel1.getId(), "Hello");
-        Message message2 = messageService.create(user2.getId(), channel1.getId(), "Hi");
+        Message message1 = messageService.create(user1.id(), channel1.getId(), "Hello");
+        Message message2 = messageService.create(user2.id(), channel1.getId(), "Hi");
 
         System.out.println("===== Users =====");
-        for (User item : userService.findAll()) {
-            System.out.println(item.getUsername());
+        for (UserDto item : userService.findAll()) {
+            System.out.println(item.username());
         }
 
         System.out.println("===== Channels =====");
@@ -42,12 +48,12 @@ public class JavaApplication {
         }
 
         System.out.println("===== 사용자 선택 조회 =====");
-        userService.findById(user1.getId())
-                        .ifPresent(u -> System.out.println(u.getUsername()));
+        userService.find(user1.id())
+                .ifPresent(u -> System.out.println(u.username()));
 
         System.out.println("\n===== 사용자 전체 조회 =====");
-        for (User user : userService.findAll()) {
-            System.out.println(user.getUsername() + " : " + user.getEmail());
+        for (UserDto user : userService.findAll()) {
+            System.out.println(user.username() + " : " + user.email());
         }
 
         System.out.println("\n===== 채널 수정 =====");
@@ -58,7 +64,7 @@ public class JavaApplication {
         System.out.println("\n===== 메세지 수정 =====");
         messageService.update(message1.getId(), "How are you?");
         messageService.findById(message1.getId())
-                        .ifPresent(m -> System.out.println(m.getContent()));
+                .ifPresent(m -> System.out.println(m.getContent()));
 
         System.out.println("\n===== 메세지 삭제 =====");
         messageService.delete(message2.getId());

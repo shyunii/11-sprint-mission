@@ -5,31 +5,27 @@ import com.sprint.mission.discodeit.service.UserService;
 import java.util.*;
 import java.util.Optional;
 
-public class JCFUserService implements UserService{
+public class JCFUserService {
     private final Map<UUID, User> data;
 
     public JCFUserService() {
         this.data = new HashMap<>();
     }
 
-    @Override
     public User create(String username, String email, String password) {
         User user = new User(username, email, password);
         data.put(user.getId(), user);
         return user;
     }
 
-    @Override
     public Optional<User> findById(UUID id) {
         return Optional.ofNullable(data.get(id));
     }
 
-    @Override
     public List<User> findAll() {
         return new ArrayList<>(data.values());
     }
 
-    @Override
     public User update(UUID id, String username, String email, String password) {
         User user = data.get(id);
 
@@ -41,7 +37,6 @@ public class JCFUserService implements UserService{
         return user;
     }
 
-    @Override
     public void delete(UUID id) {
         data.remove(id);
     }

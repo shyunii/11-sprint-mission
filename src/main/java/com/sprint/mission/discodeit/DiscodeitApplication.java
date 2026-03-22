@@ -6,6 +6,8 @@ import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
+import com.sprint.mission.discodeit.dto.UserCreateRequest;
+import com.sprint.mission.discodeit.dto.UserDto;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -21,17 +23,21 @@ public class DiscodeitApplication {
 		ChannelService channelService = context.getBean(ChannelService.class);
 		MessageService messageService = context.getBean(MessageService.class);
 
-		User user1 = userService.create("Evan", "Evan@gmail.com", "1234");
-		User user2 = userService.create("Rick", "Rick@gmail.com", "9876");
+		UserDto user1 = userService.create(
+				new UserCreateRequest("Evan", "Evan@gmail.com", "1234", null)
+		);
+		UserDto user2 = userService.create(
+				new UserCreateRequest("Rick", "Rick@gmail.com", "9876", null)
+		);
 
 		Channel channel1 = channelService.create("Test", "All chat");
 
-		Message message1 = messageService.create(user1.getId(), channel1.getId(), "Hello");
-		Message message2 = messageService.create(user2.getId(), channel1.getId(), "Hi");
+		Message message1 = messageService.create(user1.id(), channel1.getId(), "Hello");
+		Message message2 = messageService.create(user2.id(), channel1.getId(), "Hi");
 
 		System.out.println("===== Users =====");
-		for (User item : userService.findAll()) {
-			System.out.println(item.getUsername());
+		for (UserDto item : userService.findAll()) {
+			System.out.println(item.username());
 		}
 
 		System.out.println("===== Channels =====");
@@ -45,12 +51,12 @@ public class DiscodeitApplication {
 		}
 
 		System.out.println("===== 사용자 선택 조회 =====");
-		userService.findById(user1.getId())
-				.ifPresent(u -> System.out.println(u.getUsername()));
+		userService.find(user1.id())
+				.ifPresent(u -> System.out.println(u.username()));
 
 		System.out.println("\n===== 사용자 전체 조회 =====");
-		for (User user : userService.findAll()) {
-			System.out.println(user.getUsername() + " : " + user.getEmail());
+		for (UserDto user : userService.findAll()) {
+			System.out.println(user.username() + " : " + user.email());
 		}
 
 		System.out.println("\n===== 채널 수정 =====");
