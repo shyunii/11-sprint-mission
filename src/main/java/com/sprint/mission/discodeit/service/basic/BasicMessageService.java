@@ -1,13 +1,20 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import org.springframework.stereotype.Service;
-import lombok.RequiredArgsConstructor;
+import com.sprint.mission.discodeit.dto.BinaryContentCreateRequest;
+import com.sprint.mission.discodeit.dto.MessageCreateRequest;
+import com.sprint.mission.discodeit.dto.MessageDto;
+import com.sprint.mission.discodeit.dto.MessageUpdateParam;
+import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -17,50 +24,122 @@ import java.util.UUID;
 public class BasicMessageService implements MessageService {
 
     private final MessageRepository messageRepository;
-    private final UserRepository userRepository;
     private final ChannelRepository channelRepository;
+    private final UserRepository userRepository;
+    private final BinaryContentRepository binaryContentRepository;
 
     @Override
-    public Message create(UUID userId, UUID channelId, String content) {
-        if (userRepository.findById(userId).isEmpty()) {
+    public MessageDto create(MessageCreateRequest request) {
+        if (userRepository.findById(request.userId()).isEmpty()) {
             throw new IllegalArgumentException("존재하지 않는 사용자입니다.");
         }
 
-        if (channelRepository.findById(channelId).isEmpty()) {
+        if (channelRepository.findById(request.channelId()).isEmpty()) {
             throw new IllegalArgumentException("존재하지 않는 채널입니다.");
         }
 
-        Message message = new Message(userId, channelId, content);
-        return messageRepository.save(message);
+        List<UUID> attachmentIds = new ArrayList<>();
+
+        if (request.attachments() != null) {
+            for (BinaryContentCreateRequest attachmentRequest : request.attachments()) {
+                BinaryContent attachment = new BinaryContent(
+                        attachmentRequest.fileName(),
+                        attachmentRequest.contentType(),
+                        attachmentRequest.bytes()
+                );
+
+                BinaryContent savedAttachment = binaryContentRepository.save(attachment);
+                attachmentIds.add(savedAttachment.getId());
+            }
+        }
+
+        Message message = new Message(
+                request.userId(),
+                request.channelId(),
+                request.content()
+        );
+
+        message.updateAttachments(attachmentIds);
+
+        Message savedMessage = messageRepository.save(message);
+
+        return new MessageDto(
+                savedMessage.getId(),
+                savedMessage.getUserId(),
+                savedMessage.getChannelId(),
+                savedMessage.getContent(),
+                savedMessage.getAttachmentIds(),
+                savedMessage.getCreatedAt(),
+                savedMessage.getUpdatedAt()
+        );
     }
 
     @Override
-    public Optional<Message> findById(UUID id) {
-        return messageRepository.findById(id);
-    }
-
-    @Override
-    public List<Message> findAll() {
-        return messageRepository.findAll();
-    }
-
-    @Override
-    public Message update(UUID id, String content) {
+    public Optional<MessageDto> find(UUID id) {
         Optional<Message> optionalMessage = messageRepository.findById(id);
 
         if (optionalMessage.isEmpty()) {
-            throw new IllegalArgumentException("존재하지 않는 메시지입니다.");
+            return Optional.empty();
         }
 
         Message message = optionalMessage.get();
-        message.update(content);
-        return messageRepository.save(message);
+
+        MessageDto messageDto = new MessageDto(
+                message.getId(),
+                message.getUserId(),
+                message.getChannelId(),
+                message.getContent(),
+                message.getAttachmentIds(),
+                message.getCreatedAt(),
+                message.getUpdatedAt()
+        );
+
+        return Optional.of(messageDto);
+    }
+
+    @Override
+    public List<MessageDto> findAllByChannelId(UUID channelId) {
+        return messageRepository.findAll().stream()
+                .filter(message -> message.getChannelId().equals(channelId))
+                .map(message -> new MessageDto(
+                        message.getId(),
+                        message.getUserId(),
+                        message.getChannelId(),
+                        message.getContent(),
+                        message.getAttachmentIds(),
+                        message.getCreatedAt(),
+                        message.getUpdatedAt()
+                ))
+                .toList();
+    }
+
+    @Override
+    public MessageDto update(MessageUpdateParam param) {
+        Message message = messageRepository.findById(param.id())
+                .orElseThrow(() -> new IllegalArgumentException("해당 메시지가 존재하지 않습니다."));
+
+        message.update(param.request().content());
+
+        Message savedMessage = messageRepository.save(message);
+
+        return new MessageDto(
+                savedMessage.getId(),
+                savedMessage.getUserId(),
+                savedMessage.getChannelId(),
+                savedMessage.getContent(),
+                savedMessage.getAttachmentIds(),
+                savedMessage.getCreatedAt(),
+                savedMessage.getUpdatedAt()
+        );
     }
 
     @Override
     public void delete(UUID id) {
-        if (messageRepository.findById(id).isEmpty()) {
-            throw new IllegalArgumentException("존재하지 않는 메시지입니다.");
+        Message message = messageRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("해당 메시지가 존재하지 않습니다."));
+
+        for (UUID attachmentId : message.getAttachmentIds()) {
+            binaryContentRepository.delete(attachmentId);
         }
 
         messageRepository.delete(id);
