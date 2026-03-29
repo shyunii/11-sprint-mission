@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @RestController
@@ -38,12 +37,6 @@ public class UserController {
     @RequestMapping(method = RequestMethod.GET)
     public List<UserDto> findAll() {
         return userService.findAll();
-    }
-
-    @RequestMapping(value = "/{userId}", method = RequestMethod.GET)
-    public UserDto find(@PathVariable UUID userId) {
-        return userService.find(userId)
-                .orElseThrow(() -> new NoSuchElementException("사용자를 찾을 수 없습니다."));
     }
 
     @RequestMapping(value = "/{userId}", method = RequestMethod.PUT)
