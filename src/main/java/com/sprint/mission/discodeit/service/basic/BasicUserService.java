@@ -91,20 +91,20 @@ public class BasicUserService implements UserService {
         User user = userRepository.findById(param.id())
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
 
-        Optional<User> userByUsername = userRepository.findByUsername(param.request().username());
+        Optional<User> userByUsername = userRepository.findByUsername(param.request().newUsername());
         if (userByUsername.isPresent() && !userByUsername.get().getId().equals(user.getId())) {
             throw new IllegalArgumentException("이미 사용 중인 username입니다.");
         }
 
-        Optional<User> userByEmail = userRepository.findByEmail(param.request().email());
+        Optional<User> userByEmail = userRepository.findByEmail(param.request().newEmail());
         if (userByEmail.isPresent() && !userByEmail.get().getId().equals(user.getId())) {
             throw new IllegalArgumentException("이미 사용 중인 email입니다.");
         }
 
         user.update(
-                param.request().username(),
-                param.request().email(),
-                param.request().password()
+                param.request().newUsername(),
+                param.request().newEmail(),
+                param.request().newPassword()
         );
 
         if (param.request().profileImage() != null) {
