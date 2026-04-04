@@ -1,10 +1,7 @@
 package com.sprint.mission.discodeit.controller;
 
-import com.sprint.mission.discodeit.dto.BinaryContentCreateRequest;
-import com.sprint.mission.discodeit.dto.MessageCreateRequest;
-import com.sprint.mission.discodeit.dto.MessageDto;
-import com.sprint.mission.discodeit.dto.MessageUpdateParam;
-import com.sprint.mission.discodeit.dto.MessageUpdateRequest;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sprint.mission.discodeit.dto.*;
 import com.sprint.mission.discodeit.service.MessageService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -17,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import com.sprint.mission.discodeit.dto.BinaryContentCreateRequest;
 
 import java.util.List;
 import java.util.UUID;
@@ -26,19 +24,35 @@ import java.util.UUID;
 public class MessageController {
 
     private final MessageService messageService;
+    private final ObjectMapper objectMapper;
 
-    public MessageController(MessageService messageService) {
+    public MessageController(MessageService messageService, ObjectMapper objectMapper) {
         this.messageService = messageService;
+        this.objectMapper = objectMapper;
     }
 
     @ResponseStatus(HttpStatus.CREATED)
     @RequestMapping(method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public MessageDto create(
-            @RequestPart("messageCreateRequest") MessageCreateRequest request,
+            @RequestPart("messageCreateRequest") String messageCreateRequestJson,
             @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments
     ) {
+        MessageCreatePart part;
+        try {
+            part = objectMapper.readValue(messageCreateRequestJson, MessageCreatePart.class);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("잘못된 형식의 요청입니다.");
+        }
+
+        MessageCreateRequest request = new MessageCreateRequest(
+                part.authorId(),
+                part.channelId(),
+                part.content(),
+                toBinaryContentCreateRequests(attachments));
+
         return messageService.create(request);
     }
+
 
     @RequestMapping(value = "/{messageId}", method = RequestMethod.PATCH)
     public MessageDto update(@PathVariable UUID messageId,

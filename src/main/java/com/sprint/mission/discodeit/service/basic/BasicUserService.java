@@ -91,12 +91,27 @@ public class BasicUserService implements UserService {
         User user = userRepository.findById(param.id())
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
 
-        Optional<User> userByUsername = userRepository.findByUsername(param.request().newUsername());
+        String nextUsername = user.getUsername();
+        if (param.request().newUsername() != null && !param.request().newUsername().isBlank()) {
+            nextUsername = param.request().newUsername();
+        }
+
+        String nextEmail = user.getEmail();
+        if (param.request().newEmail() != null && !param.request().newEmail().isBlank()) {
+            nextEmail = param.request().newEmail();
+        }
+
+        String nextPassword = user.getPassword();
+        if (param.request().newPassword() != null && !param.request().newPassword().isBlank()) {
+            nextPassword = param.request().newPassword();
+        }
+
+        Optional<User> userByUsername = userRepository.findByUsername(nextUsername);
         if (userByUsername.isPresent() && !userByUsername.get().getId().equals(user.getId())) {
             throw new IllegalArgumentException("이미 사용 중인 username입니다.");
         }
 
-        Optional<User> userByEmail = userRepository.findByEmail(param.request().newEmail());
+        Optional<User> userByEmail = userRepository.findByEmail(nextEmail);
         if (userByEmail.isPresent() && !userByEmail.get().getId().equals(user.getId())) {
             throw new IllegalArgumentException("이미 사용 중인 email입니다.");
         }
