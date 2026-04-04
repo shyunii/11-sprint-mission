@@ -14,6 +14,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
 import java.util.UUID;
@@ -32,10 +36,21 @@ public class UserController {
         this.objectMapper = objectMapper;
     }
 
+    @Operation(
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = @Content(
+                            mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
+                            schema = @Schema(implementation = UserCreateMultipartDoc.class)
+                    )
+            )
+    )
+
     @ResponseStatus(HttpStatus.CREATED)
     @RequestMapping(method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public UserDto create(
+            @Parameter(hidden = true)
             @RequestPart("userCreateRequest") String userCreateRequestJson,
+            @Parameter(hidden = true)
             @RequestPart(value = "profile", required = false) MultipartFile profile
     ) {
         try {
@@ -58,10 +73,21 @@ public class UserController {
         return userService.findAll();
     }
 
+    @Operation(
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = @Content(
+                            mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
+                            schema = @Schema(implementation = UserUpdateMultipartDoc.class)
+                    )
+            )
+    )
+
     @RequestMapping(value = "/{userId}", method = RequestMethod.PATCH, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public UserDto update(
             @PathVariable UUID userId,
+            @Parameter(hidden = true)
             @RequestPart("userUpdateRequest") String userUpdateRequestJson,
+            @Parameter(hidden = true)
             @RequestPart(value = "profile", required = false) MultipartFile profile)
     {
         try {

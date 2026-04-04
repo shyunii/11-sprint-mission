@@ -15,6 +15,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import com.sprint.mission.discodeit.dto.BinaryContentCreateRequest;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
 import java.util.UUID;
@@ -31,10 +35,21 @@ public class MessageController {
         this.objectMapper = objectMapper;
     }
 
+    @Operation(
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = @Content(
+                            mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
+                            schema = @Schema(implementation = MessageCreateMultipartDoc.class)
+                    )
+            )
+    )
+
     @ResponseStatus(HttpStatus.CREATED)
     @RequestMapping(method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public MessageDto create(
+            @Parameter(hidden = true)
             @RequestPart("messageCreateRequest") String messageCreateRequestJson,
+            @Parameter(hidden = true)
             @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments
     ) {
         MessageCreatePart part;

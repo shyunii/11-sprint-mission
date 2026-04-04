@@ -42,19 +42,7 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "userCreateRequest": {
-                    "$ref": "#/components/schemas/UserCreateRequest"
-                  },
-                  "profile": {
-                    "type": "string",
-                    "format": "binary"
-                  }
-                },
-                "required": [
-                  "userCreateRequest"
-                ]
+                "$ref": "#/components/schemas/UserCreateMultipartDoc"
               }
             }
           }
@@ -177,22 +165,7 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "messageCreateRequest": {
-                    "$ref": "#/components/schemas/MessageCreateRequest"
-                  },
-                  "attachments": {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "format": "binary"
-                    }
-                  }
-                },
-                "required": [
-                  "messageCreateRequest"
-                ]
+                "$ref": "#/components/schemas/MessageCreateMultipartDoc"
               }
             }
           }
@@ -344,19 +317,7 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "userUpdateRequest": {
-                    "$ref": "#/components/schemas/UserUpdateRequest"
-                  },
-                  "profile": {
-                    "type": "string",
-                    "format": "binary"
-                  }
-                },
-                "required": [
-                  "userUpdateRequest"
-                ]
+                "$ref": "#/components/schemas/UserUpdateMultipartDoc"
               }
             }
           }
@@ -688,22 +649,19 @@
   },
   "components": {
     "schemas": {
-      "BinaryContentCreateRequest": {
+      "UserCreateMultipartDoc": {
         "type": "object",
         "properties": {
-          "fileName": {
-            "type": "string"
+          "userCreateRequest": {
+            "$ref": "#/components/schemas/UserCreatePart"
           },
-          "contentType": {
-            "type": "string"
-          },
-          "bytes": {
+          "profile": {
             "type": "string",
-            "format": "byte"
+            "format": "binary"
           }
         }
       },
-      "UserCreateRequest": {
+      "UserCreatePart": {
         "type": "object",
         "properties": {
           "username": {
@@ -714,9 +672,6 @@
           },
           "password": {
             "type": "string"
-          },
-          "profileImage": {
-            "$ref": "#/components/schemas/BinaryContentCreateRequest"
           }
         }
       },
@@ -731,6 +686,9 @@
             "type": "string"
           },
           "email": {
+            "type": "string"
+          },
+          "password": {
             "type": "string"
           },
           "profileId": {
@@ -796,7 +754,22 @@
           }
         }
       },
-      "MessageCreateRequest": {
+      "MessageCreateMultipartDoc": {
+        "type": "object",
+        "properties": {
+          "messageCreateRequest": {
+            "$ref": "#/components/schemas/MessageCreatePart"
+          },
+          "attachments": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "binary"
+            }
+          }
+        }
+      },
+      "MessageCreatePart": {
         "type": "object",
         "properties": {
           "authorId": {
@@ -809,12 +782,6 @@
           },
           "content": {
             "type": "string"
-          },
-          "attachments": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/BinaryContentCreateRequest"
-            }
           }
         }
       },
@@ -924,7 +891,19 @@
           }
         }
       },
-      "UserUpdateRequest": {
+      "UserUpdateMultipartDoc": {
+        "type": "object",
+        "properties": {
+          "userUpdateRequest": {
+            "$ref": "#/components/schemas/UserUpdatePart"
+          },
+          "profile": {
+            "type": "string",
+            "format": "binary"
+          }
+        }
+      },
+      "UserUpdatePart": {
         "type": "object",
         "properties": {
           "newUsername": {
@@ -935,9 +914,6 @@
           },
           "newPassword": {
             "type": "string"
-          },
-          "profileImage": {
-            "$ref": "#/components/schemas/BinaryContentCreateRequest"
           }
         }
       },
