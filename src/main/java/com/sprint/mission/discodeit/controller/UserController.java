@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.dto.*;
+import com.sprint.mission.discodeit.exception.InvalidException;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.UserStatusService;
 import org.springframework.http.HttpStatus;
@@ -12,8 +13,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 import java.util.UUID;
@@ -24,12 +23,10 @@ public class UserController {
 
     private final UserService userService;
     private final UserStatusService userStatusService;
-    private final ObjectMapper objectMapper;
 
-    public UserController(UserService userService, UserStatusService userStatusService, ObjectMapper objectMapper) {
+    public UserController(UserService userService, UserStatusService userStatusService) {
         this.userService = userService;
         this.userStatusService = userStatusService;
-        this.objectMapper = objectMapper;
     }
 
     @Operation(
@@ -41,32 +38,25 @@ public class UserController {
             )
     )
 
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
-    @RequestMapping(method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public UserDto create(
             @Parameter(hidden = true)
-            @RequestPart("userCreateRequest") String userCreateRequestJson,
+            @Valid
+            @RequestPart("userCreateRequest") UserCreatePart part,
             @Parameter(hidden = true)
             @RequestPart(value = "profile", required = false) MultipartFile profile
     ) {
-        UserCreatePart part;
-        try {
-            part = objectMapper.readValue(userCreateRequestJson, UserCreatePart.class);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("userCreateRequest 형식이 잘못되었습니다.", e);
-        }
-
-        UserCreateRequest newRequest = new UserCreateRequest(
+        UserCreateRequest request = new UserCreateRequest(
                 part.username(),
                 part.email(),
                 part.password(),
                 toBinaryContentCreateRequest(profile)
         );
-
-        return userService.create(newRequest);
+        return userService.create(request);
     }
 
-    @RequestMapping(method = RequestMethod.GET)
+    @GetMapping
     public List<UserDto> findAll() {
         return userService.findAll();
     }
@@ -80,38 +70,31 @@ public class UserController {
             )
     )
 
-    @RequestMapping(value = "/{userId}", method = RequestMethod.PATCH, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PatchMapping(value = "/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public UserDto update(
             @PathVariable UUID userId,
             @Parameter(hidden = true)
-            @RequestPart("userUpdateRequest") String userUpdateRequestJson,
+            @Valid
+            @RequestPart("userUpdateRequest") UserUpdatePart part,
             @Parameter(hidden = true)
             @RequestPart(value = "profile", required = false) MultipartFile profile
     ) {
-        UserUpdatePart part;
-        try {
-            part = objectMapper.readValue(userUpdateRequestJson, UserUpdatePart.class);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("userUpdateRequest 형식이 잘못되었습니다.", e);
-        }
-
-        UserUpdateRequest newRequest = new UserUpdateRequest(
+        UserUpdateRequest request = new UserUpdateRequest(
                 part.newUsername(),
                 part.newEmail(),
                 part.newPassword(),
                 toBinaryContentCreateRequest(profile)
         );
-
-        return userService.update(new UserUpdateParam(userId, newRequest));
+        return userService.update(new UserUpdateParam(userId, request));
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @RequestMapping(value = "/{userId}", method = RequestMethod.DELETE)
+    @DeleteMapping(value = "/{userId}")
     public void delete(@PathVariable UUID userId) {
         userService.delete(userId);
     }
 
-    @RequestMapping(value = "/{userId}/userStatus", method = RequestMethod.PATCH)
+    @PatchMapping(value = "/{userId}/userStatus")
     public UserStatusDto updateStatus(@PathVariable UUID userId,
                                       @RequestBody UserStatusUpdateRequest request) {
         return userStatusService.updateByUserId(userId, request);
@@ -129,7 +112,7 @@ public class UserController {
                     file.getBytes()
             );
         } catch (Exception e) {
-            throw new IllegalArgumentException("파일 처리 중 오류가 발생했습니다.");
+            throw new InvalidException("파일 처리 중 오류가 발생했습니다.");
         }
     }
 }

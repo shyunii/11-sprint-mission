@@ -11,13 +11,14 @@ spring:
     hibernate:
       ddl-auto: none
     show-sql: true
+    open-in-view: false
     properties:
       hibernate:
         format_sql: true
 
   sql:
     init:
-      mode: never
+      mode: always
 
 server:
   port: ${PORT:8080}

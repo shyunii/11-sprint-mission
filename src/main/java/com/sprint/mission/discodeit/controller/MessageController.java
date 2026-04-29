@@ -1,18 +1,12 @@
 package com.sprint.mission.discodeit.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sprint.mission.discodeit.dto.*;
+import com.sprint.mission.discodeit.exception.InvalidException;
 import com.sprint.mission.discodeit.service.MessageService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import com.sprint.mission.discodeit.dto.BinaryContentCreateRequest;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,11 +23,9 @@ import java.util.UUID;
 public class MessageController {
 
     private final MessageService messageService;
-    private final ObjectMapper objectMapper;
 
-    public MessageController(MessageService messageService, ObjectMapper objectMapper) {
+    public MessageController(MessageService messageService) {
         this.messageService = messageService;
-        this.objectMapper = objectMapper;
     }
 
     @Operation(
@@ -45,21 +37,15 @@ public class MessageController {
             )
     )
 
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
-    @RequestMapping(method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public MessageDto create(
             @Parameter(hidden = true)
-            @RequestPart("messageCreateRequest") String messageCreateRequestJson,
+            @Valid
+            @RequestPart("messageCreateRequest") MessageCreatePart part,
             @Parameter(hidden = true)
             @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments
     ) {
-        MessageCreatePart part;
-        try {
-            part = objectMapper.readValue(messageCreateRequestJson, MessageCreatePart.class);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("잘못된 형식의 요청입니다.");
-        }
-
         MessageCreateRequest request = new MessageCreateRequest(
                 part.authorId(),
                 part.channelId(),
@@ -70,24 +56,25 @@ public class MessageController {
     }
 
 
-    @RequestMapping(value = "/{messageId}", method = RequestMethod.PATCH)
+    @PatchMapping(value = "/{messageId}")
     public MessageDto update(@PathVariable UUID messageId,
                              @RequestBody MessageUpdateRequest request) {
         return messageService.update(new MessageUpdateParam(messageId, request));
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @RequestMapping(value = "/{messageId}", method = RequestMethod.DELETE)
+    @DeleteMapping(value = "/{messageId}")
     public void delete(@PathVariable UUID messageId) {
         messageService.delete(messageId);
     }
 
-    @RequestMapping(method = RequestMethod.GET)
+    @GetMapping
     public PageResponse<MessageDto> findAllByChannelId(
             @RequestParam UUID channelId,
-            @RequestParam(defaultValue = "0") int page
+            @RequestParam(required = false) String cursor,
+            @RequestParam(defaultValue = "50") int size
     ) {
-        return messageService.findAllByChannelId(channelId, page);
+        return messageService.findAllByChannelId(channelId, cursor, size);
     }
 
     private List<BinaryContentCreateRequest> toBinaryContentCreateRequests(List<MultipartFile> files) {
@@ -105,7 +92,7 @@ public class MessageController {
                                 file.getBytes()
                         );
                     } catch (Exception e) {
-                        throw new IllegalArgumentException("파일 처리 중 오류가 발생했습니다.");
+                        throw new InvalidException("파일 처리 중 오류가 발생했습니다.");
                     }
                 })
                 .toList();

@@ -2,13 +2,14 @@ package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.BinaryContentCreateRequest;
-import com.sprint.mission.discodeit.dto.BinaryContentDto;
 import com.sprint.mission.discodeit.dto.UserDto;
 import com.sprint.mission.discodeit.dto.UserUpdateParam;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.exception.NotFoundException;
+import com.sprint.mission.discodeit.exception.DuplicatedException;
+import com.sprint.mission.discodeit.exception.StorageException;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
@@ -39,11 +40,11 @@ public class BasicUserService implements UserService {
     @Transactional
     public UserDto create(UserCreateRequest request) {
         if (userRepository.existsByUsername(request.username())) {
-            throw new IllegalArgumentException("이미 사용 중인 username입니다.");
+            throw new DuplicatedException("이미 사용 중인 username입니다.");
         }
 
         if (userRepository.existsByEmail(request.email())) {
-            throw new IllegalArgumentException("이미 사용 중인 email입니다.");
+            throw new DuplicatedException("이미 사용 중인 email입니다.");
         }
 
         BinaryContent profile = null;
@@ -130,14 +131,14 @@ public class BasicUserService implements UserService {
     private void validateUsername(String newUsername, User user) {
         Optional<User> userByUsername = userRepository.findByUsername(newUsername);
         if (userByUsername.isPresent() && !userByUsername.get().getId().equals(user.getId())) {
-            throw new IllegalArgumentException("이미 사용 중인 username입니다.");
+            throw new DuplicatedException("이미 사용 중인 username입니다.");
         }
     }
 
     private void validateEmail(String newEmail, User user) {
         Optional<User> userByEmail = userRepository.findByEmail(newEmail);
         if (userByEmail.isPresent() && !userByEmail.get().getId().equals(user.getId())) {
-            throw new IllegalArgumentException("이미 사용 중인 email입니다.");
+            throw new DuplicatedException("이미 사용 중인 email입니다.");
         }
     }
 
@@ -165,7 +166,7 @@ public class BasicUserService implements UserService {
     @Transactional
     public void delete(UUID id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
+                .orElseThrow(() -> new NotFoundException("해당 사용자가 존재하지 않습니다."));
 
         if (user.getProfile() != null) {
             binaryContentRepository.deleteById(user.getProfile().getId());

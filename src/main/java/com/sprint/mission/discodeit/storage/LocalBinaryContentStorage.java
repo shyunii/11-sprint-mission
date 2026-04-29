@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.storage;
 
 import com.sprint.mission.discodeit.dto.BinaryContentDto;
+import com.sprint.mission.discodeit.exception.StorageException;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -35,7 +36,7 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
         try {
             Files.createDirectories(root);
         } catch (IOException e) {
-            throw new RuntimeException("스토리지 루트 디렉토리 생성에 실패했습니다.", e);
+            throw new StorageException("스토리지 루트 디렉토리 생성에 실패했습니다.", e);
         }
     }
 
@@ -45,7 +46,7 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
             Files.write(resolvePath(id), bytes);
             return id;
         } catch (IOException e) {
-            throw new RuntimeException("바이너리 데이터 저장에 실패했습니다.", e);
+            throw new StorageException("바이너리 데이터 저장에 실패했습니다.", e);
         }
     }
 
@@ -54,7 +55,7 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
         try {
             return Files.newInputStream(resolvePath(id));
         } catch (IOException e) {
-            throw new RuntimeException("바이너리 데이터 조회에 실패했습니다.", e);
+            throw new StorageException("바이너리 데이터 조회에 실패했습니다.", e);
         }
     }
 
@@ -72,7 +73,7 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
                     .contentLength(binaryContentDto.size())
                     .body(resource);
         } catch (Exception e) {
-            throw new RuntimeException("파일 다운로드에 실패했습니다.", e);
+            throw new StorageException("파일 다운로드에 실패했습니다.", e);
         }
     }
 
