@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface MessageRepository extends JpaRepository<Message, UUID> {
@@ -49,4 +50,15 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
         order by m.createdAt desc, m.id desc
     """)
     List<Message> findAllWithDetailsByIdIn(@Param("ids") List<UUID> ids);
+
+    @Query("""
+    select distinct m
+    from Message m
+    left join fetch m.author a
+    left join fetch a.profile
+    left join fetch a.status
+    left join fetch m.attachments
+    where m.id = :id
+""")
+    Optional<Message> findByIdWithDetails(@Param("id") UUID id);
 }

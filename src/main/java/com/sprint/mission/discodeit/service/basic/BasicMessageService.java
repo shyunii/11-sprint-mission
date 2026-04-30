@@ -76,7 +76,7 @@ public class BasicMessageService implements MessageService {
 
     @Override
     public Optional<MessageDto> find(UUID id) {
-        return messageRepository.findById(id)
+        return messageRepository.findByIdWithDetails(id)
                 .map(messageMapper::toDto);
     }
 
@@ -142,10 +142,11 @@ public class BasicMessageService implements MessageService {
         Message message = messageRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("해당 메시지가 존재하지 않습니다."));
 
+        messageRepository.delete(message);
+
         for (BinaryContent attachment : message.getAttachments()) {
             binaryContentRepository.deleteById(attachment.getId());
+            binaryContentStorage.delete(attachment.getId());
         }
-
-        messageRepository.deleteById(id);
     }
 }

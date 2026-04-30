@@ -3,10 +3,12 @@ package com.sprint.mission.discodeit.storage;
 import com.sprint.mission.discodeit.dto.BinaryContentDto;
 import com.sprint.mission.discodeit.exception.StorageException;
 import jakarta.annotation.PostConstruct;
+import com.sprint.mission.discodeit.exception.NotFoundException;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -61,23 +63,33 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
 
     @Override
     public ResponseEntity<Resource> download(BinaryContentDto binaryContentDto) {
-        try {
-            InputStreamResource resource = new InputStreamResource(get(binaryContentDto.id()));
+        Path path = resolvePath(binaryContentDto.id());
 
-            return ResponseEntity.ok()
-                    .header(
-                            HttpHeaders.CONTENT_DISPOSITION,
-                            "attachment; filename=\"" + binaryContentDto.fileName() + "\""
+        if (!Files.exists(path)) {
+            throw new NotFoundException("파일을 찾을 수 없습니다");
+        }
+
+        Resource resource = new FileSystemResource(path);
+
+        return ResponseEntity.ok()
+                .header(
+                        HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + binaryContentDto.fileName() + "\""
                     )
                     .contentType(MediaType.parseMediaType(binaryContentDto.contentType()))
                     .contentLength(binaryContentDto.size())
                     .body(resource);
-        } catch (Exception e) {
-            throw new StorageException("파일 다운로드에 실패했습니다.", e);
         }
-    }
-
     private Path resolvePath(UUID id) {
         return root.resolve(id.toString());
+    }
+
+    @Override
+    public void delete(UUID id) {
+        try {
+            Files.deleteIfExists(resolvePath(id));
+        } catch (IOException e) {
+            throw new StorageException("바이너리 데이터 삭제에 실패했습니다.", e);
+        }
     }
 }

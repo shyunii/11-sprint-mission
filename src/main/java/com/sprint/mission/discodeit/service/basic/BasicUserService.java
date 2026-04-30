@@ -9,7 +9,6 @@ import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.exception.NotFoundException;
 import com.sprint.mission.discodeit.exception.DuplicatedException;
-import com.sprint.mission.discodeit.exception.StorageException;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
@@ -144,7 +143,9 @@ public class BasicUserService implements UserService {
 
     private void replaceProfileImage(User user, BinaryContentCreateRequest newProfileImage) {
         if (user.getProfile() != null) {
-            binaryContentRepository.deleteById(user.getProfile().getId());
+            UUID oldProfileId = user.getProfile().getId();
+            binaryContentRepository.deleteById(oldProfileId);
+            binaryContentStorage.delete(oldProfileId);
         }
 
         BinaryContent newProfile = new BinaryContent(
@@ -169,7 +170,9 @@ public class BasicUserService implements UserService {
                 .orElseThrow(() -> new NotFoundException("해당 사용자가 존재하지 않습니다."));
 
         if (user.getProfile() != null) {
-            binaryContentRepository.deleteById(user.getProfile().getId());
+            UUID profileId = user.getProfile().getId();
+            binaryContentRepository.deleteById(profileId);
+            binaryContentStorage.delete(profileId);
         }
 
         userStatusRepository.findByUser_Id(user.getId())
